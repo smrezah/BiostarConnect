@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Face Events (Live)";
+}
+
+<h2>Face Recognition Events</h2>
+
+<!-- ================= SignalR Connection Status ================= -->
+<div class="mb-3">
+    <span class="badge bg-secondary" id="connStatus">
+        Connecting...
+    </span>
+</div>
+
+<!-- ================= Device Status ================= -->
+<h4>Connected Devices</h4>
+
+<table class="table table-sm table-bordered mb-4">
+    <thead class="table-light">
+        <tr>
+            <th>Device</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+        </tr>
+    </thead>
+    <tbody id="deviceTable"></tbody>
+</table>
+<!-- ================= Face Events Table ================= -->
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Device</th>
+            <th>User ID</th>
+            <th>User Name</th>
+            <th>Event Time</th>
+        </tr>
+    </thead>
+    <tbody id="eventBody">
+        <tr>
+            <td colspan="4" class="text-center text-muted">
+                Waiting for face events...
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script src="~/lib/signalr/signalr.min.js"></script>
+
+<script>
+    /* ================= Helper ================= */
+    function updateDeviceRow(data) {
+
+        const table = document.getElementById("deviceTable");
+        let row = document.getElementById("dev-" + data.device);
+
+        if (!row) {
+            row = document.createElement("tr");
+            row.id = "dev-" + data.device;
+            table.appendChild(row);
+        }
+
+        row.innerHTML = `
+            <td>${data.device}</td>
+            <td>
+                <span class="badge ${data.online ? 'bg-success' : 'bg-danger'}">
+                    ${data.online ? 'Online' : 'Offline'}
+                </span>
+            </td>
+            <td>${new Date(data.lastSeen).toLocaleString()}</td>
+        `;
+    }
+
+    /* ================= SignalR Connection ================= */
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/faceHub")
+        .withAutomaticReconnect()
+        .build();
+
+    /* ================= Initial Device State ================= */
+    connection.on("OnInitialDeviceStatus", function (devices) {
+        devices.forEach(d => updateDeviceRow(d));
+    });
+
+    /* ================= Device Status Updates ================= */
+    connection.on("OnDeviceStatus", function (data) {
+        updateDeviceRow(data);
+    });
+
+    /* ================= Face Events ================= */
+    connection.on("OnFaceEvent", function (data) {
+
+        const body = document.getElementById("eventBody");
+
+        if (body.children.length === 1 && body.children[0].cells.length === 1) {
+            body.innerHTML = "";
+        }
+
+        const row = `
+            <tr data-user-id="${data.userId}">
+                <td>${data.deviceId}</td>
+                <td>${data.userId}</td>
+                <td class="username">
+                    ${data.userName || '<span class="text-muted">Loading...</span>'}
+                </td>
+                <td>${new Date(data.eventTime).toLocaleString()}</td>
+            </tr>
+        `;
+
+        body.insertAdjacentHTML("afterbegin", row);
+    });
+
+    /* ================= UserName Async Update ================= */
+    connection.on("OnUserResolved", function (data) {
+        document
+            .querySelectorAll(`tr[data-user-id="${data.userId}"]`)
+            .forEach(row => {
+                row.querySelector(".username").innerText = data.userName;
+            });
+    });
+
+    /* ================= Connection Status ================= */
+    connection.onreconnecting(() => {
+        document.getElementById("connStatus").innerText = "Reconnecting...";
+        document.getElementById("connStatus").className = "badge bg-warning";
+    });
+
+    connection.onreconnected(() => {
+        document.getElementById("connStatus").innerText = "Connected";
+        document.getElementById("connStatus").className = "badge bg-success";
+    });
+
+    connection.onclose(() => {
+        document.getElementById("connStatus").innerText = "Disconnected";
+        document.getElementById("connStatus").className = "badge bg-danger";
+    });
+
+    /* ================= Start ================= */
+    connection.start()
+        .then(() => {
+            document.getElementById("connStatus").innerText = "Connected";
+            document.getElementById("connStatus").className = "badge bg-success";
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("connStatus").innerText = "Connection Failed";
+            document.getElementById("connStatus").className = "badge bg-danger";
+        });
+</script>
