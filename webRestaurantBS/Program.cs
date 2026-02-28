@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Diagnostics;
 using webRestaurantBS.Hubs;
 using webRestaurantBS.Models;
@@ -37,6 +39,10 @@ builder.Services.AddHostedService<BioStarFaceEventService>();
 builder.Services.AddSingleton<BioStarUserResolver>();
 builder.Services.AddSingleton<DeviceStateStore>();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -50,7 +56,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-var app = builder.Build();
+//var cs = builder.Configuration.GetConnectionString("DefaultConnection");
+//Console.WriteLine($"Connection String: {cs}");
+
+var app = builder.Build(); 
 
 Console.WriteLine(Environment.Is64BitProcess ? "x64 Loaded" : "x86 Loaded");
 Debug.WriteLine($"Native Arch: {(Environment.Is64BitProcess ? "x64" : "x86")}");

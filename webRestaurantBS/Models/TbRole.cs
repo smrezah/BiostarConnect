@@ -1,10 +1,25 @@
-﻿namespace webRestaurantBS.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace webRestaurantBS.Models
 {
     public class TbRole
     {
-        //public Guid Id { get; set; }
-        //public string Name { get; set; }
+        [Key]
+        public long RoleId { get; set; }
 
-        //public ICollection<UserRole> UserRoles { get; set; }
+        [Display(Name = "نام نقش")]
+        public string RoleName { get; set; }
+
+        [Display(Name = "توضیحات نقش")]
+        public string RoleCaption { get; set; }
+
+        [Display(Name = "وضعیت")]
+        public Status Status { get; set; } = Status.Active;
+
+        [Display(Name = "تاریخ ثبت")]
+        public DateTime EnDate { get; set; }
+
+        public virtual ICollection<TbUsers> ChildrenUser { get; set; }
+        public virtual ICollection<TbPermissionRole> ChildrenPermissionRole { get; set; }
     }
 }

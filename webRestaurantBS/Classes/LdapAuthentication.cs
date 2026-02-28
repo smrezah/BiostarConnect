@@ -14,10 +14,7 @@ namespace webRestaurantBS.Classes
         public string ErrorMessage { get; private set; }
         public List<string> OrgUnits { get; private set; }
 
-        public LdapAuthentication(string path)
-        {
-            _path = path;
-        }
+        public LdapAuthentication(string path) => _path = path;
 
         public async Task<bool> IsAuthenticated(string domain, string username, string pwd)
         {
@@ -26,14 +23,14 @@ namespace webRestaurantBS.Classes
             await Task.Run(() =>
             {
                 string domainAndUsername = domain + @"\" + username;
-                System.DirectoryServices.DirectoryEntry entry = new System.DirectoryServices.DirectoryEntry(_path, domainAndUsername, pwd);
+                System.DirectoryServices.DirectoryEntry entry = new(_path, domainAndUsername, pwd);
 
                 try
                 {
                     //Bind to the native AdsObject to force authentication.
                     object obj = entry.NativeObject;
 
-                    DirectorySearcher search = new DirectorySearcher(entry)
+                    DirectorySearcher search = new(entry)
                     {
                         Filter = "(SAMAccountName=" + username + ")"
                     };
@@ -74,14 +71,14 @@ namespace webRestaurantBS.Classes
             try
             {
                 string domainAndUsername = domain + @"\" + username;
-                System.DirectoryServices.DirectoryEntry entry = new System.DirectoryServices.DirectoryEntry(_path, domainAndUsername, pwd);
-                DirectorySearcher search = new DirectorySearcher(entry);
+                System.DirectoryServices.DirectoryEntry entry = new(_path, domainAndUsername, pwd);
+                DirectorySearcher search = new(entry);
 
                 //var retVal = (string)entry.Properties["employeeID"].Value;
 
-                OrgUnits = new List<string>();
+                OrgUnits = [];
                 SearchResultCollection res = search.FindAll();
-                List<string> str = new List<string>(res[0].Path.Split(new char[] { ',', ' ' }));
+                List<string> str = [.. res[0].Path.Split([',', ' '])];
                 foreach (string item in str)
                 {
                     if (item.Contains("OU"))
@@ -105,14 +102,14 @@ namespace webRestaurantBS.Classes
         public string GetGroups(string domain, string username, string pwd)
         {
             string domainAndUsername = domain + @"\" + username;
-            System.DirectoryServices.DirectoryEntry entry = new System.DirectoryServices.DirectoryEntry(_path, domainAndUsername, pwd);
+            System.DirectoryServices.DirectoryEntry entry = new(_path, domainAndUsername, pwd);
 
-            DirectorySearcher search = new DirectorySearcher(entry)
+            DirectorySearcher search = new(entry)
             {
                 Filter = "(cn=" + FullNameEn + ")"
             };
             search.PropertiesToLoad.Add("memberOf");
-            StringBuilder groupNames = new StringBuilder();
+            StringBuilder groupNames = new();
 
             try
             {
@@ -131,7 +128,7 @@ namespace webRestaurantBS.Classes
                         return null;
                     }
                     groupNames.Append(dn.Substring((equalsIndex + 1), (commaIndex - equalsIndex) - 1));
-                    groupNames.Append("|");
+                    groupNames.Append('|');
                 }
             }
             catch (Exception ex)
