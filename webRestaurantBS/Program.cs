@@ -37,7 +37,9 @@ builder.Services.Configure<BioStarOptions>(builder.Configuration.GetSection("Bio
 
 builder.Services.AddHostedService<BioStarFaceEventService>(); 
 builder.Services.AddSingleton<BioStarUserResolver>();
-builder.Services.AddSingleton<DeviceStateStore>();
+builder.Services.AddSingleton<DeviceStateStore>(); 
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IMaherAfzarApiService, MaherAfzarApiService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
