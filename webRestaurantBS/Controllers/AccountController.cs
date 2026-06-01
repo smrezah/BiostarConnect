@@ -13,9 +13,9 @@ namespace webRestaurantBS.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly string ldapServer = "LDAP://petrokavian.net";
-        private readonly string ldapDomain = "petrokavian.net";
-        private readonly string _path = "LDAP://petrokavian.net";
+        private readonly string ldapServer = "LDAP://sadra.com";
+        private readonly string ldapDomain = "sadra.com";
+        private readonly string _path = "LDAP://sadra.com";
         public string FullNameEn { get; private set; }
         public string DisplayName { get; private set; }
         public string Email { get; private set; }
